@@ -1,10 +1,12 @@
 var ui = require('./userInterface.js');
 var slack = require('./slackClient.js');
+var fs = require('fs');
 
 var components = ui.init(); // ui components
 var users;
 var currentUser;
 var channels;
+var groupMapping = {};
 var currentChannelId;
 
 // This is a hack to make the message list scroll to the bottom whenever a message is sent.
@@ -151,6 +153,34 @@ slack.getChannels(function (error, response, data) {
   components.screen.render();
 });
 
+// set the list groups list to the channels returned from slack
+slack.getGroups(function (error, response, data){
+  if (error || response.statusCode !== 200) {
+    console.log('Error: ', error, response || response.statusCode);
+    return;
+  }
+
+  fs.writeFileSync('error_log.txt', data);
+  
+  var groupData = JSON.parse(data);
+
+  groups = groupData.groups.filter(function (group) {
+    return !group.is_archived;
+  });
+
+  components.groupList.setItems(
+    groups.map(function (slackGroup) {
+
+      //we need to build a mapping so we can show the group name in the ui, but join the group by id
+      groupMapping[slackGroup.name] = slackGroup.id
+      return slackGroup.name;
+    })
+  );
+
+  fs.writeFileSync('error_log.txt', JSON.stringify(groupMapping));
+
+});
+
 // event handler when user selects a channel
 var updateMessages = function (data, markFn) {
   components.chatWindow.deleteTop(); // remove loading message
@@ -241,5 +271,27 @@ components.channelList.on('select', function (data) {
       }
     );
   });
+});
+
+components.groupList.on('select', function (data) {
+  var groupName = data.content;
+  var groupId = groupMapping[groupName];
+  currentChannelId = groupId; //need for compatility with updateMessages (but we should be passing this to the function)
+
+  // a group was selected
+  components.mainWindowTitle.setContent('{bold}' + groupName + '{/bold}');
+  components.chatWindow.setContent('Getting messages...');
+  components.screen.render();
+
+  slack.openGroup(groupId, function (error, response, groupData) {
+
+    // get the previous messages of the group and display them
+    slack.getGroupHistory(groupId,
+      function (histError, histResponse, groupHistoryData) {
+        updateMessages(JSON.parse(groupHistoryData), slack.markGroup)   
+      }
+    );
+  });
+
 });
 

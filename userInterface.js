@@ -122,7 +122,7 @@ module.exports = {
 
     var channelsBox = blessed.box({
       width: '100%',
-      height: '60%',
+      height: '40%',
       border: {
         type: 'line',
       },
@@ -158,10 +158,50 @@ module.exports = {
       tags: true,
     });
 
+    var groupsBox = blessed.box({
+      width: '100%',
+      height: '30%',
+      top: '40%',
+      border: {
+        type: 'line',
+      },
+      style: {
+        border: {
+          fg: '#888',
+        },
+      },
+    });
+
+    var groupsTitle = blessed.text({
+      width: '90%',
+      left: '5%',
+      align: 'center',
+      content: '{bold}Groups{/bold}',
+      tags: true,
+    });
+
+    var groupList = blessed.list({
+      width: '90%',
+      height: '85%',
+      left: '5%',
+      top: '10%',
+      keys: true,
+      vi: true,
+      search: searchChannels,
+      style: {
+        selected: {
+          bg: '#373b41',
+          fg: '#c5c8c6',
+        },
+      },
+      tags: true,
+    });
+
+
     var usersBox = blessed.box({
       width: '100%',
-      height: '40%',
-      top: '60%',
+      height: '30%',
+      top: '70%',
       border: {
         type: 'line',
       },
@@ -199,9 +239,12 @@ module.exports = {
 
     channelsBox.append(channelsTitle);
     channelsBox.append(channelList);
+    groupsBox.append(groupsTitle);
+    groupsBox.append(groupList);
     usersBox.append(usersTitle);
     usersBox.append(userList);
     sideBar.append(channelsBox);
+    sideBar.append(groupsBox);
     sideBar.append(usersBox);
     mainWindow.append(mainWindowTitle);
     mainWindow.append(chatWindow);
@@ -212,6 +255,7 @@ module.exports = {
 
     keyBindings.escape = process.exit.bind(null, 0);            // esc to exit
     keyBindings['C-c'] = channelList.focus.bind(channelList);   // ctrl-c for channels
+    keyBindings['C-g'] = groupList.focus.bind(groupList);       // ctrl-g for channels
     keyBindings['C-u'] = userList.focus.bind(userList);         // ctrl-u for users
     keyBindings['C-w'] = messageInput.focus.bind(messageInput); // ctrl-w for write
     keyBindings['C-l'] = chatWindow.focus.bind(chatWindow);     // ctrl-l for message list
@@ -225,6 +269,7 @@ module.exports = {
 
     userList.on('keypress', callKeyBindings);
     channelList.on('keypress', callKeyBindings);
+    groupList.on('keypress', callKeyBindings);
     chatWindow.on('keypress', callKeyBindings);
     messageInput.on('keypress', function (ch, key) {
       if (Object.keys(keyBindings).includes(key.full)) {
@@ -260,6 +305,8 @@ module.exports = {
     userList.on('blur', onBlur.bind(null, usersBox));
     channelList.on('focus', onFocus.bind(null, channelsBox));
     channelList.on('blur', onBlur.bind(null, channelsBox));
+    groupList.on('focus', onFocus.bind(null, groupsBox));
+    groupList.on('blur', onBlur.bind(null, groupsBox));
     messageInput.on('focus', onFocus.bind(null, messageInput));
     messageInput.on('blur', onBlur.bind(null, messageInput));
     chatWindow.on('focus', onFocus.bind(null, mainWindow));
@@ -273,6 +320,7 @@ module.exports = {
       userList: userList,
       channelsTitle: channelsTitle,
       channelList: channelList,
+      groupList: groupList,
       mainWindow: mainWindow,
       mainWindowTitle: mainWindowTitle,
       chatWindow: chatWindow,

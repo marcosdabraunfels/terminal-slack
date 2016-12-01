@@ -56,6 +56,13 @@ module.exports = {
       }
     });
   },
+  getGroups: function (callback) {
+    slackRequest('groups.list', {}, function (/* error, response, data */) {
+      if (callback) {
+        callback.apply(this, arguments);
+      }
+    });
+  },
   joinChannel: function (name, callback) {
     slackRequest('channels.join', {
       name: name,
@@ -74,8 +81,27 @@ module.exports = {
       }
     });
   },
+  getGroupHistory: function (id, callback) {
+    slackRequest('groups.history', {
+      channel: id,
+    }, function (/* error, response, data */) {
+      if (callback) {
+        callback.apply(this, arguments);
+      }
+    });
+  },
   markChannel: function (id, timestamp, callback) {
     slackRequest('channels.mark', {
+      channel: id,
+      ts: timestamp,
+    }, function (/* error, response, data */) {
+      if (callback) {
+        callback.apply(this, arguments);
+      }
+    });
+  },
+  markGroup: function (id, timestamp, callback) {
+    slackRequest('groups.mark', {
       channel: id,
       ts: timestamp,
     }, function (/* error, response, data */) {
@@ -94,6 +120,15 @@ module.exports = {
   openIm: function (id, callback) {
     slackRequest('im.open', {
       user: id,
+    }, function (/* error, response, data */) {
+      if (callback) {
+        callback.apply(this, arguments);
+      }
+    });
+  },
+  openGroup: function (id, callback){
+    slackRequest('groups.open', {
+      channel: id,
     }, function (/* error, response, data */) {
       if (callback) {
         callback.apply(this, arguments);
